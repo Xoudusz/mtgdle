@@ -63,43 +63,48 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
   }
 
   const guessedNames = results.map(r => r.guessedCard.name)
+  const showPT =
+    dailyCard.card_type === 'Creature' &&
+    results.some(r => r.guessedCard.card_type === 'Creature')
 
   return (
-    <main className="flex flex-col items-center min-h-screen px-4 py-8 gap-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Carddle</h1>
-        <p className="text-[#9b8a6e] text-sm mt-1">Guess today's Magic card</p>
-      </div>
+    <main className="min-h-screen px-4 py-8">
+      <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Carddle</h1>
+          <p className="text-[#9b8a6e] text-sm mt-1">Guess today's Magic card</p>
+        </div>
 
-      <div className="text-[#9b8a6e] text-sm">
-        {results.length} / {MAX_GUESSES} guesses
-        {done && !showModal && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="ml-4 underline hover:text-[#e8e0d0]"
-          >
-            Show result
-          </button>
+        <div className="text-[#9b8a6e] text-sm">
+          {results.length} / {MAX_GUESSES} guesses
+          {done && !showModal && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="ml-4 underline hover:text-[#e8e0d0]"
+            >
+              Show result
+            </button>
+          )}
+        </div>
+
+        <CardSearch
+          cards={cards}
+          guessedNames={guessedNames}
+          onGuess={handleGuess}
+          disabled={done}
+        />
+
+        <GuessGrid results={results} showPT={showPT} />
+
+        {showModal && (
+          <ResultModal
+            card={dailyCard}
+            solved={solved}
+            guessCount={results.length}
+            onClose={() => setShowModal(false)}
+          />
         )}
       </div>
-
-      <CardSearch
-        cards={cards}
-        guessedNames={guessedNames}
-        onGuess={handleGuess}
-        disabled={done}
-      />
-
-      <GuessGrid results={results} />
-
-      {showModal && (
-        <ResultModal
-          card={dailyCard}
-          solved={solved}
-          guessCount={results.length}
-          onClose={() => setShowModal(false)}
-        />
-      )}
     </main>
   )
 }

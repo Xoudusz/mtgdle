@@ -10,6 +10,10 @@ export function getDayIndex(): number {
 }
 
 export function getDailyCard(mode: 'classic' | 'art' | 'flavor', cards: Card[]): Card {
+  if (process.env.TEST_CARD) {
+    const override = cards.find(c => c.name === process.env.TEST_CARD)
+    if (override) return override
+  }
   const dayIndex = getDayIndex()
   return cards[(dayIndex + MODE_OFFSET[mode]) % cards.length]
 }

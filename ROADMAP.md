@@ -173,8 +173,8 @@ services:
 
 ### Phase 2 — Classic Mode (Carddle)
 - [x] `CardSearch.tsx` — autocomplete input filtered to card pool, keyboard nav, "not in pool" feedback
-- [x] `compare.ts` — comparison logic for all 8 columns
-- [x] `GuessGrid.tsx` — colored cell grid (green / yellow / red + arrows)
+- [x] `compare.ts` — comparison logic for 7 columns (Type+Supertype merged: green=both match, yellow=one matches, red=neither)
+- [x] `GuessGrid.tsx` — colored cell grid (green / yellow / red + arrows); P/T column hidden until player guesses a Creature and only if daily card is a Creature
 - [x] Win state + `ResultModal.tsx` — show full card on solve
 - [x] Persist result to `localStorage` via `storage.ts`
 

@@ -8,8 +8,7 @@ export interface GuessResult {
   columns: {
     name: Feedback
     color_identity: { feedback: Feedback }
-    card_type: Feedback
-    supertypes: Feedback
+    type_line: Feedback
     cmc: { feedback: Feedback; direction: Direction }
     power_toughness: { feedback: Feedback; direction: Direction }
     rarity: Feedback
@@ -42,11 +41,14 @@ export function compareCards(guessed: Card, target: Card): GuessResult {
       ? 'partial'
       : 'wrong'
 
-  // Supertypes: exact match on sorted array
-  const supertypesCorrect =
+  // Type line: green = type AND supertype both match, yellow = one matches, red = neither
+  const typeMatch = guessed.card_type === target.card_type
+  const supertypeMatch =
     [...guessed.supertypes].sort().join(',') === [...target.supertypes].sort().join(',')
+  const typeLineFeedback: Feedback =
+    typeMatch && supertypeMatch ? 'correct' : typeMatch || supertypeMatch ? 'partial' : 'wrong'
 
-  // Power/Toughness: compare average or both
+  // Power/Toughness
   const gPT = parsePT(guessed.power)
   const tPT = parsePT(target.power)
   const ptCompare = compareNumeric(gPT, tPT)
@@ -54,15 +56,12 @@ export function compareCards(guessed: Card, target: Card): GuessResult {
   const columns: GuessResult['columns'] = {
     name: guessed.name === target.name ? 'correct' : 'wrong',
     color_identity: { feedback: colorFeedback },
-    card_type: guessed.card_type === target.card_type ? 'correct' : 'wrong',
-    supertypes: supertypesCorrect ? 'correct' : 'wrong',
+    type_line: typeLineFeedback,
     cmc: compareNumeric(guessed.cmc, target.cmc),
     power_toughness: ptCompare,
     rarity: guessed.rarity === target.rarity ? 'correct' : 'wrong',
     set: guessed.set === target.set ? 'correct' : 'wrong',
   }
 
-  const correct = guessed.name === target.name
-
-  return { guessedCard: guessed, columns, correct }
+  return { guessedCard: guessed, columns, correct: guessed.name === target.name }
 }
