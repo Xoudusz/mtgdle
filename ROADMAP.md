@@ -34,9 +34,12 @@ function getDailyCard(mode: 'classic' | 'art' | 'flavor', cards: Card[]): Card {
   const today = new Date()
   const dayIndex = Math.floor((today.getTime() - epoch.getTime()) / 86400000)
   const modeOffset = { classic: 0, art: 1000, flavor: 2000 }
-  return cards[(dayIndex + modeOffset[mode]) % cards.length]
+  const cardSeed = parseInt(process.env.CARD_SEED || '0', 10)
+  return cards[(dayIndex + modeOffset[mode] + cardSeed) % cards.length]
 }
 ```
+
+`CARD_SEED` shifts the daily card without changing the date. Use to preview future days or avoid spoilers during testing.
 
 ---
 
@@ -173,10 +176,10 @@ services:
 
 ### Phase 2 — Classic Mode (Carddle)
 - [x] `CardSearch.tsx` — autocomplete input filtered to card pool, keyboard nav, "not in pool" feedback
-- [x] `compare.ts` — comparison logic for 7 columns (Type+Supertype merged: green=both match, yellow=one matches, red=neither)
-- [x] `GuessGrid.tsx` — colored cell grid (green / yellow / red + arrows); P/T column hidden until player guesses a Creature and only if daily card is a Creature
+- [x] `compare.ts` — 8 columns: Name, Colors, Type (merged with supertype: green=both, yellow=one, red=neither), Subtypes (set overlap), CMC, P/T, Rarity, Set
+- [x] `GuessGrid.tsx` — colored cell grid; color identity shown as Scryfall mana symbol SVGs; P/T hidden until player guesses a Creature (and only if daily card is a Creature); Subtypes column; mobile-responsive with horizontal scroll
 - [x] Win state + `ResultModal.tsx` — show full card on solve
-- [x] Persist result to `localStorage` via `storage.ts`
+- [x] Persist result to `localStorage` via `storage.ts`; `NEXT_PUBLIC_NO_CACHE=true` disables for testing
 
 ### Phase 3 — Art Mode (Artdle)
 - [ ] `ArtZoom.tsx` — CSS zoom using Scryfall `image_uris.art_crop`, seeded crop anchor per day
@@ -205,10 +208,9 @@ services:
 - [ ] SEO + Open Graph metadata
 
 ### Phase 7 — Docker + Deployment
-- [ ] Write `Dockerfile` (multi-stage Node build)
-- [ ] Write `docker-compose.yml` (mtgdle + pocketbase)
-- [ ] nginx config for both services
-- [ ] GitHub Actions workflow — build image, push to `ghcr.io`, auto-deploy on push to `main`
+- [x] Write `Dockerfile` (multi-stage Node build, standalone output)
+- [x] Write `docker-compose.yml` (mtgdle service for nginx_proxy_default network)
+- [x] GitHub Actions workflow — build image, push to `ghcr.io`, auto-deploy on push to `master`
 - [ ] Lock down PocketBase API (write-only from app, no public read on raw records)
 
 ### Phase 8 — Future (post-launch)

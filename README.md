@@ -28,6 +28,22 @@ Cards are sourced from the [Scryfall](https://scryfall.com/docs/api/bulk-data) `
 
 To add cards that rank outside the top 1000, add their Scryfall card objects to `data/curated.json`.
 
+Re-run `npm run fetch-cards` after major set releases to pick up new cards and updated data.
+
+## Testing
+
+Copy `.env.local.example` to `.env.local` to override the daily card and disable localStorage caching during development:
+
+```bash
+cp .env.local.example .env.local
+```
+
+| Variable | Description |
+|---|---|
+| `TEST_CARD` | Force a specific card by name (overrides daily logic) |
+| `CARD_SEED` | Offset daily card index without changing date (e.g. `50` shifts pool by 50) |
+| `NEXT_PUBLIC_NO_CACHE` | Disable localStorage persistence |
+
 ## Project Structure
 
 ```
