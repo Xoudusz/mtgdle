@@ -1,0 +1,8 @@
+services:
+  mtgdle:
+    image: ghcr.io/xoudusz/mtgdle:latest
+    container_name: mtgdle
+    restart: unless-stopped
+    network_mode: nginx_proxy_default
+    environment:
+      - CARD_SEED=0
