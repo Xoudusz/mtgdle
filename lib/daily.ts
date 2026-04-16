@@ -2,6 +2,7 @@ import type { Card } from './types'
 
 const EPOCH = new Date('2025-01-01')
 const MODE_OFFSET: Record<string, number> = { classic: 0, art: 1000, flavor: 2000 }
+const CARD_SEED = parseInt(process.env.CARD_SEED || '0', 10)
 
 export function getDayIndex(): number {
   const today = new Date()
@@ -15,5 +16,5 @@ export function getDailyCard(mode: 'classic' | 'art' | 'flavor', cards: Card[]):
     if (override) return override
   }
   const dayIndex = getDayIndex()
-  return cards[(dayIndex + MODE_OFFSET[mode]) % cards.length]
+  return cards[(dayIndex + MODE_OFFSET[mode] + CARD_SEED) % cards.length]
 }
