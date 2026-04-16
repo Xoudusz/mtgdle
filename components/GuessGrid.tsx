@@ -1,9 +1,11 @@
 import type { GuessResult, Feedback, Direction } from '@/lib/compare'
+import { extractSubtypes } from '@/lib/compare'
+import ManaSymbol from '@/components/ManaSymbol'
 
 function cellBg(feedback: Feedback) {
   if (feedback === 'correct') return 'bg-green-800 border-green-600'
   if (feedback === 'partial') return 'bg-yellow-800 border-yellow-600'
-  return 'bg-[#2a1a1a] border-[#5a2020]'
+  return 'bg-red-950 border-red-800'
 }
 
 function arrow(direction: Direction) {
@@ -12,19 +14,12 @@ function arrow(direction: Direction) {
   return ''
 }
 
-function colorLabel(colors: string[]) {
-  if (colors.length === 0) return 'C'
-  return colors.join('')
-}
-
 function rarityLabel(r: string) {
   return r.charAt(0).toUpperCase()
 }
 
-// Strip subtype (everything after " — ") from type_line for display
 function typeLabel(card: GuessResult['guessedCard']) {
-  const parts = card.type_line.split(' — ')
-  return parts[0].trim()
+  return card.type_line.split(' — ')[0].trim()
 }
 
 interface Props {
@@ -35,7 +30,7 @@ interface Props {
 export default function GuessGrid({ results, showPT }: Props) {
   if (results.length === 0) return null
 
-  const minWidth = showPT ? 'min-w-[560px]' : 'min-w-[480px]'
+  const minWidth = showPT ? 'min-w-[720px]' : 'min-w-[640px]'
 
   return (
     <div className="w-full overflow-x-auto">
@@ -43,12 +38,13 @@ export default function GuessGrid({ results, showPT }: Props) {
         <thead>
           <tr>
             <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Name</th>
-            <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Colors</th>
+            <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Color ID</th>
             <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Type</th>
+            <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Subtypes</th>
             <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">CMC</th>
             {showPT && <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">P/T</th>}
             <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Rarity</th>
-            <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Set</th>
+            <th className="px-1.5 py-2 sm:px-2 text-[#9b8a6e] font-normal border-b border-[#3a3020]">Released in</th>
           </tr>
         </thead>
         <tbody>
@@ -57,14 +53,22 @@ export default function GuessGrid({ results, showPT }: Props) {
             const card = result.guessedCard
             return (
               <tr key={i}>
-                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border max-w-[100px] truncate ${cellBg(c.name)} font-mono`}>
+                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border min-w-[160px] ${cellBg(c.name)} font-mono`}>
                   {card.name}
                 </td>
-                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.color_identity.feedback)} font-mono`}>
-                  {colorLabel(card.color_identity)}
+                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.color_identity.feedback)}`}>
+                  <div className="flex justify-center gap-0.5">
+                    {card.color_identity.length === 0
+                      ? <ManaSymbol symbol="C" />
+                      : card.color_identity.map(c => <ManaSymbol key={c} symbol={c} />)
+                    }
+                  </div>
                 </td>
                 <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.type_line)} font-mono`}>
                   {typeLabel(card)}
+                </td>
+                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.subtypes)} font-mono`}>
+                  {extractSubtypes(card.type_line).join(', ') || '—'}
                 </td>
                 <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.cmc.feedback)} font-mono`}>
                   {card.cmc}{arrow(c.cmc.direction)}
@@ -78,7 +82,7 @@ export default function GuessGrid({ results, showPT }: Props) {
                   {rarityLabel(card.rarity)}
                 </td>
                 <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.set)} font-mono`}>
-                  {card.set.toUpperCase()}
+                  {card.original_set_name}
                 </td>
               </tr>
             )

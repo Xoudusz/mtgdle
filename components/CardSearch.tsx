@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Card } from '@/lib/types'
+import { parseMana } from '@/lib/mana'
+import ManaSymbol from '@/components/ManaSymbol'
 
 interface Props {
   cards: Card[]
@@ -76,24 +78,50 @@ export default function CardSearch({ cards, guessedNames, onGuess, disabled }: P
       {open && (
         <ul
           ref={listRef}
-          className="absolute z-10 w-full mt-1 bg-[#1a1510] border border-[#3a3020] rounded-lg overflow-hidden shadow-xl"
+          className="absolute z-10 w-full mt-1 bg-[#1a1510] border border-[#3a3020] rounded-lg overflow-hidden shadow-xl max-h-[360px] overflow-y-auto"
         >
           {noMatch ? (
             <li className="px-4 py-3 text-sm text-[#6b5a3e] italic">Not in card pool</li>
           ) : (
-            filtered.map((card, i) => (
-              <li key={card.id}>
-                <button
-                  type="button"
-                  onMouseDown={() => select(card)}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                    i === highlighted ? 'bg-[#3a2a10]' : 'hover:bg-[#2a2010]'
-                  }`}
-                >
-                  {card.name}
-                </button>
-              </li>
-            ))
+            filtered.map((card, i) => {
+              const manaPips = parseMana(card.mana_cost)
+              const isLegendary = card.supertypes.includes('Legendary')
+              return (
+                <li key={card.id}>
+                  <button
+                    type="button"
+                    onMouseDown={() => select(card)}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors flex items-center gap-2 ${
+                      i === highlighted
+                        ? isLegendary ? 'bg-[#3a2a10]' : 'bg-[#1f1f1f]'
+                        : isLegendary ? 'hover:bg-[#2a1e08]' : 'hover:bg-[#1f1f1f]'
+                    }`}
+                  >
+                    {card.image_uris?.art_crop && (
+                      <img
+                        src={card.image_uris.art_crop}
+                        alt=""
+                        width={40}
+                        height={30}
+                        className="rounded flex-shrink-0 object-cover"
+                        style={{ width: 40, height: 30 }}
+                      />
+                    )}
+                    <span className="flex-1 min-w-0 truncate">
+                      {card.name}
+                      {isLegendary && <span className="ml-1.5 text-[#8b6914] text-xs">★</span>}
+                    </span>
+                    {manaPips.length > 0 && (
+                      <span className="flex items-center gap-0.5 flex-shrink-0">
+                        {manaPips.map((pip, j) => (
+                          <ManaSymbol key={j} symbol={pip} size={14} />
+                        ))}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              )
+            })
           )}
         </ul>
       )}
