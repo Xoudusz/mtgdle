@@ -38,9 +38,13 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
       .filter((c): c is Card => !!c)
       .map(c => compareCards(c, dailyCard))
     setResults(pastResults)
-    if (saved.solved || saved.guesses.length >= MAX_GUESSES) {
-      setSolved(saved.solved)
+    if (saved.solved) {
+      setSolved(true)
       setDone(true)
+    } else if (saved.continued) {
+      setContinued(true)
+    } else if (saved.guesses.length >= MAX_GUESSES) {
+      setShowContinueModal(true)
     }
   }, [cards, dailyCard])
 
@@ -62,6 +66,14 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
       return
     }
 
+    saveResult({
+      date: todayStr(),
+      mode: 'classic',
+      solved: false,
+      guesses: next.map(r => r.guessedCard.name),
+      continued,
+    })
+
     if (!continued && next.length >= MAX_GUESSES) {
       setShowContinueModal(true)
     }
@@ -82,6 +94,13 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
   function handleContinue() {
     setShowContinueModal(false)
     setContinued(true)
+    saveResult({
+      date: todayStr(),
+      mode: 'classic',
+      solved: false,
+      guesses: results.map(r => r.guessedCard.name),
+      continued: true,
+    })
   }
 
   const guessedNames = results.map(r => r.guessedCard.name)
