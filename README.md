@@ -60,9 +60,21 @@ scripts/
   fetch-cards.ts      # Scryfall → cards.json
 ```
 
+## Deployment
+
+Docker image auto-published to GHCR on push to `master`.
+
+```bash
+docker pull ghcr.io/xoudusz/mtgdle:latest
+```
+
+Container listens on **port 3000**. Configure nginx proxy to target `mtgdle:3000`.
+
+See `docker-compose.yml` for production setup with nginx_proxy_default network.
+
 ## Stack
 
 - **Next.js 14** (App Router) + TypeScript + Tailwind CSS
 - **Scryfall** bulk JSON for card data
 - **PocketBase** for anonymous stats (Phase 5)
-- **Docker** + nginx for deployment (Phase 7)
+- **Docker** + nginx for deployment

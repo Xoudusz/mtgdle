@@ -4,5 +4,6 @@ services:
     container_name: mtgdle
     restart: unless-stopped
     network_mode: nginx_proxy_default
+    # Container listens on port 3000 — configure nginx proxy to target mtgdle:3000
     environment:
       - CARD_SEED=0
