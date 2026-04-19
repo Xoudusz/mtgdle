@@ -5,6 +5,7 @@ export interface DailyResult {
   mode: string
   solved: boolean
   guesses: string[]
+  continued?: boolean
 }
 
 function getKey(date: string, mode: string) {
