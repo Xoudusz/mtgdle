@@ -14,6 +14,8 @@ export interface Card {
   set_name: string
   original_set: string     // set code of first printing
   original_set_name: string
+  original_year: number    // year of first printing (e.g., 2018)
+  original_month: number   // month of first printing (1-12)
   flavor_text: string | null
   image_uris: {
     art_crop: string

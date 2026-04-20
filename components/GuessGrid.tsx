@@ -81,8 +81,8 @@ export default function GuessGrid({ results, showPT }: Props) {
                 <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.rarity)} font-mono`}>
                   {rarityLabel(card.rarity)}
                 </td>
-                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.set)} font-mono`}>
-                  {card.original_set_name}
+                <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.set.feedback)} font-mono`}>
+                  {card.original_set_name} ({card.original_year}-{String(card.original_month).padStart(2, '0')}){arrow(c.set.direction)}
                 </td>
               </tr>
             )
