@@ -26,7 +26,7 @@ npm run dev           # starts dev server at http://localhost:3000
 
 Cards are sourced from the [Scryfall](https://scryfall.com/docs/api/bulk-data) `default_cards` bulk export, filtered to the top 1000 unique cards by EDHREC rank (most popular Commander staples and iconic cards).
 
-To add cards that rank outside the top 1000, add their Scryfall card objects to `data/curated.json`.
+To add cards that rank outside the top 1000, add their names to `data/curated.json`.
 
 Re-run `npm run fetch-cards` after major set releases to pick up new cards and updated data.
 

@@ -13,7 +13,7 @@ export interface GuessResult {
     cmc: { feedback: Feedback; direction: Direction }
     power_toughness: { feedback: Feedback; direction: Direction }
     rarity: Feedback
-    set: Feedback
+    set: { feedback: Feedback; direction: Direction }
   }
   correct: boolean
 }
@@ -36,6 +36,22 @@ function parsePT(val: string | null): number | null {
   return isNaN(n) ? null : n
 }
 
+function compareSet(guessed: Card, target: Card): { feedback: Feedback; direction: Direction } {
+  // Same set = correct (no arrow needed)
+  if (guessed.original_set === target.original_set) {
+    return { feedback: 'correct', direction: null }
+  }
+  // Different set, same year = partial (no arrow)
+  if (guessed.original_year === target.original_year) {
+    return { feedback: 'partial', direction: null }
+  }
+  // Different year = wrong with direction arrow
+  const guessedYM = guessed.original_year * 100 + guessed.original_month
+  const targetYM = target.original_year * 100 + target.original_month
+  const direction: Direction = guessedYM < targetYM ? 'higher' : 'lower'
+  return { feedback: 'wrong', direction }
+}
+
 export function compareCards(guessed: Card, target: Card): GuessResult {
   // Color identity: exact = correct, overlap = partial, no overlap = wrong
   const guessedColors = new Set(guessed.color_identity)
@@ -53,21 +69,30 @@ export function compareCards(guessed: Card, target: Card): GuessResult {
   const typeMatch = guessed.card_type === target.card_type
   const gSupStr = [...guessed.supertypes].sort().join(',')
   const tSupStr = [...target.supertypes].sort().join(',')
-  const supertypeMatch = gSupStr === tSupStr
+  // Only count supertype match if at least one has supertypes
+  const bothSupertypesEmpty = guessed.supertypes.length === 0 && target.supertypes.length === 0
+  const supertypeMatch =
+    (guessed.supertypes.length > 0 || target.supertypes.length > 0) && gSupStr === tSupStr
   const typeLineFeedback: Feedback =
-    typeMatch && supertypeMatch ? 'correct' : typeMatch || supertypeMatch ? 'partial' : 'wrong'
+    typeMatch && (supertypeMatch || bothSupertypesEmpty)
+      ? 'correct'
+      : typeMatch || supertypeMatch
+      ? 'partial'
+      : 'wrong'
 
   // Subtypes: exact = correct, overlap = partial, no overlap or both empty = wrong
   const guessedSubs = extractSubtypes(guessed.type_line)
   const targetSubs = extractSubtypes(target.type_line)
   const subIntersection = guessedSubs.filter(s => targetSubs.includes(s))
   const subtypesFeedback: Feedback =
-    guessedSubs.length > 0 && targetSubs.length > 0 &&
-    guessedSubs.length === targetSubs.length && subIntersection.length === targetSubs.length
+    guessedSubs.length === 0 && targetSubs.length === 0
       ? 'correct'
-      : subIntersection.length > 0
-      ? 'partial'
-      : 'wrong'
+      : guessedSubs.length > 0 && targetSubs.length > 0 &&
+        guessedSubs.length === targetSubs.length && subIntersection.length === targetSubs.length
+        ? 'correct'
+        : subIntersection.length > 0
+        ? 'partial'
+        : 'wrong'
 
   // Power/Toughness
   const gPT = parsePT(guessed.power)
@@ -82,7 +107,7 @@ export function compareCards(guessed: Card, target: Card): GuessResult {
     cmc: compareNumeric(guessed.cmc, target.cmc),
     power_toughness: ptCompare,
     rarity: guessed.rarity === target.rarity ? 'correct' : 'wrong',
-    set: guessed.original_set === target.original_set ? 'correct' : 'wrong',
+    set: compareSet(guessed, target),
   }
 
   return { guessedCard: guessed, columns, correct: guessed.name === target.name }
@@ -116,10 +141,13 @@ export function filterCandidates(cards: Card[], results: GuessResult[]): Card[] 
       const typeMatch = candidate.card_type === g.card_type
       const cSupStr = [...candidate.supertypes].sort().join(',')
       const gSupStr2 = [...g.supertypes].sort().join(',')
-      const supertypeMatch = cSupStr === gSupStr2
-      if (c.type_line === 'correct' && !(typeMatch && supertypeMatch)) return false
+      // Only count supertype match if at least one has supertypes
+      const bothSupertypesEmpty = candidate.supertypes.length === 0 && g.supertypes.length === 0
+      const supertypeMatch =
+        (candidate.supertypes.length > 0 || g.supertypes.length > 0) && cSupStr === gSupStr2
+      if (c.type_line === 'correct' && !(typeMatch && (supertypeMatch || bothSupertypesEmpty))) return false
       if (c.type_line === 'partial' && !(typeMatch || supertypeMatch)) return false
-      if (c.type_line === 'partial' && typeMatch && supertypeMatch) return false
+      if (c.type_line === 'partial' && typeMatch && (supertypeMatch || bothSupertypesEmpty)) return false
       if (c.type_line === 'wrong' && (typeMatch || supertypeMatch)) return false
 
       // Subtypes
@@ -127,7 +155,9 @@ export function filterCandidates(cards: Card[], results: GuessResult[]): Card[] 
       const cSubs = extractSubtypes(candidate.type_line)
       const subOverlap = gSubs.filter(s => cSubs.includes(s))
       if (c.subtypes === 'correct') {
-        if (!(gSubs.length > 0 && cSubs.length > 0 && gSubs.length === cSubs.length && subOverlap.length === cSubs.length)) return false
+        const bothEmpty = gSubs.length === 0 && cSubs.length === 0
+        const exactMatch = gSubs.length > 0 && cSubs.length > 0 && gSubs.length === cSubs.length && subOverlap.length === cSubs.length
+        if (!bothEmpty && !exactMatch) return false
       } else if (c.subtypes === 'partial') {
         if (subOverlap.length === 0) return false
         if (gSubs.length === cSubs.length && subOverlap.length === cSubs.length) return false
@@ -144,9 +174,30 @@ export function filterCandidates(cards: Card[], results: GuessResult[]): Card[] 
       if (c.rarity === 'correct' && candidate.rarity !== g.rarity) return false
       if (c.rarity === 'wrong' && candidate.rarity === g.rarity) return false
 
-      // Set (compare original printing)
-      if (c.set === 'correct' && candidate.original_set !== g.original_set) return false
-      if (c.set === 'wrong' && candidate.original_set === g.original_set) return false
+      // Set with year filtering
+      const setMatch = candidate.original_set === g.original_set
+      const yearMatch = candidate.original_year === g.original_year
+      if (c.set.feedback === 'correct') {
+        // Must match set exactly
+        if (!setMatch) return false
+      } else if (c.set.feedback === 'partial') {
+        // Must match year but not set
+        if (!yearMatch || setMatch) return false
+      } else {
+        // Wrong: different year, respect direction
+        if (yearMatch) return false
+        if (c.set.direction === 'higher') {
+          // Target is newer, so candidate must be newer than guess
+          const candYM = candidate.original_year * 100 + candidate.original_month
+          const guessYM = g.original_year * 100 + g.original_month
+          if (candYM <= guessYM) return false
+        } else if (c.set.direction === 'lower') {
+          // Target is older, so candidate must be older than guess
+          const candYM = candidate.original_year * 100 + candidate.original_month
+          const guessYM = g.original_year * 100 + g.original_month
+          if (candYM >= guessYM) return false
+        }
+      }
     }
 
     return true

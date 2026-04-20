@@ -49,8 +49,7 @@ function getDailyCard(mode: 'classic' | 'art' | 'flavor', cards: Card[]): Card {
 |---|---|---|
 | Card name | exact | green / red |
 | Color identity | set comparison | green = exact, yellow = partial overlap |
-| Card type | exact | green / red |
-| Supertype | exact (Legendary etc.) | green / red |
+| Type | card_type + supertype | green = both match, yellow = one matches, red = neither |
 | CMC | numeric | green = exact, yellow + arrow = higher/lower |
 | Power/Toughness | numeric | green = exact, yellow + arrow = higher/lower |
 | Rarity | exact | green / red |

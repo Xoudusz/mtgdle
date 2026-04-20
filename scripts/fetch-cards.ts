@@ -125,16 +125,20 @@ async function main() {
     .sort((a, b) => a.chosen.edhrec_rank! - b.chosen.edhrec_rank!)
     .slice(0, TARGET_COUNT)
 
-  // Load curated overrides
+  // Load curated overrides (list of card names)
   const curatedPath = path.join(process.cwd(), 'data', 'curated.json')
-  const curated: ScryfallCard[] = fs.existsSync(curatedPath)
+  const curatedNames: string[] = fs.existsSync(curatedPath)
     ? JSON.parse(fs.readFileSync(curatedPath, 'utf-8'))
     : []
 
   const pool = [...filtered]
-  for (const c of curated) {
-    if (!pool.find(p => p.chosen.id === c.id)) {
-      pool.push({ chosen: c, original: c })
+  for (const name of curatedNames) {
+    const group = byName.get(name)
+    if (!group) { console.warn(`curated: card not found: ${name}`); continue }
+    const chosen = pickDefaultPrinting(group)
+    const original = [...group].sort((a, b) => a.released_at.localeCompare(b.released_at))[0]
+    if (!pool.find(p => p.chosen.id === chosen.id)) {
+      pool.push({ chosen, original })
     }
   }
 
@@ -159,6 +163,8 @@ async function main() {
       set_name: c.set_name,
       original_set: original.set,
       original_set_name: original.set_name,
+      original_year: parseInt(original.released_at.slice(0, 4), 10),
+      original_month: parseInt(original.released_at.slice(5, 7), 10),
       flavor_text: flavorText,
       image_uris: imageUris,
       edhrec_rank: c.edhrec_rank ?? null,
