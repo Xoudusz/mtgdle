@@ -181,10 +181,10 @@ services:
 - [x] Persist result to `localStorage` via `storage.ts`; `NEXT_PUBLIC_NO_CACHE=true` disables for testing
 
 ### Phase 3 — Art Mode (Artdle)
-- [ ] `ArtZoom.tsx` — CSS zoom using Scryfall `image_uris.art_crop`, seeded crop anchor per day
-- [ ] 5 zoom levels, steps out one per guess
-- [ ] Same `CardSearch.tsx` input, no attribute columns
-- [ ] Win state + full art reveal
+- [x] `ArtZoom.tsx` — CSS zoom using Scryfall `image_uris.art_crop`, seeded crop anchor per day
+- [x] 5 zoom levels, steps out one per wrong guess
+- [x] Same `CardSearch.tsx` input, no attribute columns
+- [x] Win state + full art reveal
 
 ### Phase 4 — Flavor Mode (Flavordle)
 - [ ] Filter `cards.json` at build time — exclude cards without flavor text
