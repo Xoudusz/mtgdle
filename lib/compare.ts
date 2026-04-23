@@ -184,6 +184,25 @@ export function filterCandidates(cards: Card[], results: GuessResult[]): Card[] 
       if (c.rarity === 'correct' && candidate.rarity !== g.rarity) return false
       if (c.rarity === 'wrong' && candidate.rarity === g.rarity) return false
 
+      // Power/Toughness
+      const gPow = parsePT(g.power)
+      const gTou = parsePT(g.toughness)
+      const cPow = parsePT(candidate.power)
+      const cTou = parsePT(candidate.toughness)
+      const powMatch = gPow !== null && cPow !== null && cPow === gPow
+      const touMatch = gTou !== null && cTou !== null && cTou === gTou
+      if (c.power_toughness.feedback === 'correct') {
+        if (!powMatch || !touMatch) return false
+      } else if (c.power_toughness.feedback === 'partial') {
+        if (powMatch === touMatch) return false
+      } else {
+        if (powMatch || touMatch) return false
+        if (c.power_toughness.powerDirection === 'higher' && gPow !== null && cPow !== null && cPow <= gPow) return false
+        if (c.power_toughness.powerDirection === 'lower' && gPow !== null && cPow !== null && cPow >= gPow) return false
+        if (c.power_toughness.toughnessDirection === 'higher' && gTou !== null && cTou !== null && cTou <= gTou) return false
+        if (c.power_toughness.toughnessDirection === 'lower' && gTou !== null && cTou !== null && cTou >= gTou) return false
+      }
+
       // Set with year filtering
       const setMatch = candidate.original_set === g.original_set
       const yearMatch = candidate.original_year === g.original_year
