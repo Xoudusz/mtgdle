@@ -14,6 +14,12 @@ function arrow(direction: Direction) {
   return ''
 }
 
+function tightArrow(direction: Direction) {
+  if (direction === 'higher') return '↑'
+  if (direction === 'lower') return '↓'
+  return ''
+}
+
 function rarityLabel(r: string) {
   return r.charAt(0).toUpperCase()
 }
@@ -74,8 +80,8 @@ export default function GuessGrid({ results, showPT }: Props) {
                   {card.cmc}{arrow(c.cmc.direction)}
                 </td>
                 {showPT && (
-                  <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.power_toughness.feedback)} font-mono`}>
-                    {card.power != null ? `${card.power}/${card.toughness}${arrow(c.power_toughness.direction)}` : '—'}
+                  <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.power_toughness.feedback)} font-mono whitespace-nowrap`}>
+                    {card.power != null && card.toughness != null ? `${card.power}${tightArrow(c.power_toughness.powerDirection)}/${card.toughness}${tightArrow(c.power_toughness.toughnessDirection)}` : '—'}
                   </td>
                 )}
                 <td className={`px-1.5 py-2 sm:px-2 sm:py-3 border ${cellBg(c.rarity)} font-mono`}>

@@ -11,7 +11,7 @@ export interface GuessResult {
     type_line: Feedback
     subtypes: Feedback
     cmc: { feedback: Feedback; direction: Direction }
-    power_toughness: { feedback: Feedback; direction: Direction }
+    power_toughness: { feedback: Feedback; powerDirection: Direction; toughnessDirection: Direction }
     rarity: Feedback
     set: { feedback: Feedback; direction: Direction }
   }
@@ -94,10 +94,20 @@ export function compareCards(guessed: Card, target: Card): GuessResult {
         ? 'partial'
         : 'wrong'
 
-  // Power/Toughness
-  const gPT = parsePT(guessed.power)
-  const tPT = parsePT(target.power)
-  const ptCompare = compareNumeric(gPT, tPT)
+  // Power/Toughness: correct=both match, partial=one matches, wrong=neither; arrow per mismatching stat
+  const gP = parsePT(guessed.power)
+  const tP = parsePT(target.power)
+  const gT = parsePT(guessed.toughness)
+  const tT = parsePT(target.toughness)
+  const powerMatch = gP !== null && tP !== null && gP === tP
+  const toughnessMatch = gT !== null && tT !== null && gT === tT
+  let ptFeedback: Feedback
+  if (powerMatch && toughnessMatch) ptFeedback = 'correct'
+  else if (powerMatch || toughnessMatch) ptFeedback = 'partial'
+  else ptFeedback = 'wrong'
+  const powerDirection: Direction = powerMatch || gP === null || tP === null ? null : gP < tP ? 'higher' : 'lower'
+  const toughnessDirection: Direction = toughnessMatch || gT === null || tT === null ? null : gT < tT ? 'higher' : 'lower'
+  const ptCompare = { feedback: ptFeedback, powerDirection, toughnessDirection }
 
   const columns: GuessResult['columns'] = {
     name: guessed.name === target.name ? 'correct' : 'wrong',
@@ -140,11 +150,11 @@ export function filterCandidates(cards: Card[], results: GuessResult[]): Card[] 
       // Type line (card_type + supertypes)
       const typeMatch = candidate.card_type === g.card_type
       const cSupStr = [...candidate.supertypes].sort().join(',')
-      const gSupStr2 = [...g.supertypes].sort().join(',')
+      const gSupStr = [...g.supertypes].sort().join(',')
       // Only count supertype match if at least one has supertypes
       const bothSupertypesEmpty = candidate.supertypes.length === 0 && g.supertypes.length === 0
       const supertypeMatch =
-        (candidate.supertypes.length > 0 || g.supertypes.length > 0) && cSupStr === gSupStr2
+        (candidate.supertypes.length > 0 || g.supertypes.length > 0) && cSupStr === gSupStr
       if (c.type_line === 'correct' && !(typeMatch && (supertypeMatch || bothSupertypesEmpty))) return false
       if (c.type_line === 'partial' && !(typeMatch || supertypeMatch)) return false
       if (c.type_line === 'partial' && typeMatch && (supertypeMatch || bothSupertypesEmpty)) return false
