@@ -18,9 +18,12 @@ services:
       - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
       - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
       - TZ=Europe/Berlin
+    # Uncomment to expose admin UI on your LAN: http://<host-ip>:8090/_/
+    # ports:
+    #   - "8090:8090"
     volumes:
       - ./pb_data:/pb_data
-      - ./pb_migrations:/pb_migrations
+      - ./pb_hooks:/pb_hooks
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/health"]
       interval: 30s

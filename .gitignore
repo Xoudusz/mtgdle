@@ -25,3 +25,7 @@ yarn-error.log*
 .claude/
 pocketbase_local/
 pb_data/
+
+# windows artifacts
+nul
+tsconfig.tsbuildinfo

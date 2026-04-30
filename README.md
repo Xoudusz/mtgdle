@@ -49,8 +49,8 @@ cp .env.local.example .env.local
 ```
 app/                  # Next.js App Router pages
   classic/            # Carddle game
-  art/                # Artdle game (coming soon)
-  flavor/             # Flavordle game (coming soon)
+  art/                # Artdle game
+  flavor/             # Flavordle game
 components/           # Shared UI components
 lib/                  # Game logic (types, daily seed, compare, storage)
 data/
@@ -71,6 +71,26 @@ docker pull ghcr.io/xoudusz/mtgdle:latest
 Container listens on **port 3000**. Configure nginx proxy to target `mtgdle:3000`.
 
 See `docker-compose.yml` for production setup with nginx_proxy_default network.
+
+### PocketBase
+
+PocketBase runs alongside the app and auto-creates the `guesses` collection on first startup via `pb_migrations/`.
+
+Set credentials in your environment (or a `.env` file next to `docker-compose.yml`):
+
+```env
+PB_ADMIN_EMAIL=admin@yourdomain.com
+PB_ADMIN_PASSWORD=your-secure-password
+```
+
+The admin UI is available at `http://<host>:8090/_/` — but only if you expose the port. By default PocketBase is only reachable inside the Docker network. To access it from your LAN (e.g. for debugging), add a port mapping to the pocketbase service in `docker-compose.yml`:
+
+```yaml
+ports:
+  - "8090:8090"
+```
+
+Then reach it at `http://<host-ip>:8090/_/` (e.g. `http://192.168.68.103:8090/_/`).
 
 ## Stack
 
