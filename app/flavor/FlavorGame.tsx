@@ -6,6 +6,7 @@ import { loadResult, saveResult } from '@/lib/storage'
 import CardSearch from '@/components/CardSearch'
 import ResultModal from '@/components/ResultModal'
 import FlavorText from '@/components/FlavorText'
+import HintStrip from '@/components/HintStrip'
 
 const MAX_GUESSES = 6
 
@@ -75,6 +76,7 @@ export default function FlavorGame({ cards, dailyCard }: Props) {
   }
 
   const guessedNames = guesses.map(g => g.name)
+  const wrongGuesses = guesses.filter(g => !g.correct)
 
   return (
     <main className="min-h-screen px-4 py-8">
@@ -94,6 +96,8 @@ export default function FlavorGame({ cards, dailyCard }: Props) {
         </div>
 
         <FlavorText text={dailyCard.flavor_text!} />
+
+        <HintStrip card={dailyCard} wrongCount={wrongGuesses.length} />
 
         {guesses.length > 0 && (
           <ul className="w-full flex flex-col gap-1">

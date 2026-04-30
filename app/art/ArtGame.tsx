@@ -6,8 +6,9 @@ import { loadResult, saveResult } from '@/lib/storage'
 import CardSearch from '@/components/CardSearch'
 import ResultModal from '@/components/ResultModal'
 import ArtZoom from '@/components/ArtZoom'
+import HintStrip from '@/components/HintStrip'
 
-const MAX_GUESSES = 5
+const MAX_GUESSES = 6
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10)
@@ -104,6 +105,8 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
           anchorX={anchorX}
           anchorY={anchorY}
         />
+
+        <HintStrip card={dailyCard} wrongCount={wrongGuesses.length} />
 
         {guesses.length > 0 && (
           <ul className="w-full flex flex-col gap-1">
