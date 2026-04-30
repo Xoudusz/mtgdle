@@ -193,7 +193,7 @@ services:
 - [x] Win state + full card reveal
 
 ### Phase 5 — Stats (PocketBase)
-- [x] Spin up PocketBase in docker-compose, define `guesses` collection schema via JS migration (`pb_migrations/1_create_guesses.js`)
+- [x] Spin up PocketBase in docker-compose, auto-create `guesses` collection via Next.js instrumentation hook
 - [x] `app/api/stats/route.ts` — Next.js API route: POST proxies to PocketBase, GET returns aggregate `{ total, solves }`
 - [x] `lib/stats.ts` — fire-and-forget `submitStats` + `fetchStats` helpers
 - [x] Fire stat submission on game completion (non-blocking, fails silently, deduped via ref)

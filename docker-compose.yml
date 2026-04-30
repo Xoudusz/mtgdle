@@ -1,3 +1,7 @@
+x-pb-credentials: &pb-credentials
+  PB_ADMIN_EMAIL: admin@example.com
+  PB_ADMIN_PASSWORD: changeme
+
 services:
   mtgdle:
     image: ghcr.io/xoudusz/mtgdle:latest
@@ -6,8 +10,9 @@ services:
     network_mode: nginx_proxy_default
     # Container listens on port 3000 — configure nginx proxy to target mtgdle:3000
     environment:
-      - CARD_SEED=0
-      - POCKETBASE_URL=http://mtgdle-pb:8090
+      CARD_SEED: 0
+      POCKETBASE_URL: http://mtgdle-pb:8090
+      <<: *pb-credentials
 
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
@@ -15,15 +20,13 @@ services:
     restart: unless-stopped
     network_mode: nginx_proxy_default
     environment:
-      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
-      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
-      - TZ=Europe/Berlin
+      <<: *pb-credentials
+      TZ: Europe/Berlin
     # Uncomment to expose admin UI on your LAN: http://<host-ip>:8090/_/
     # ports:
     #   - "8090:8090"
     volumes:
       - ./pb_data:/pb_data
-      - ./pb_hooks:/pb_hooks
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/health"]
       interval: 30s

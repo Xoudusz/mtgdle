@@ -74,7 +74,7 @@ See `docker-compose.yml` for production setup with nginx_proxy_default network.
 
 ### PocketBase
 
-PocketBase runs alongside the app and auto-creates the `guesses` collection on first startup via `pb_migrations/`.
+PocketBase runs alongside the app. The Next.js server auto-creates the `guesses` collection on startup via `instrumentation.ts`.
 
 Set credentials in your environment (or a `.env` file next to `docker-compose.yml`):
 
