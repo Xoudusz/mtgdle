@@ -23,6 +23,14 @@ export default function CardSearch({ cards, guessedNames, onGuess, disabled }: P
     ? []
     : cards
         .filter(c => !guessedNames.includes(c.name) && c.name.toLowerCase().includes(query.toLowerCase()))
+        .sort((a, b) => {
+          const q = query.toLowerCase()
+          const aStarts = a.name.toLowerCase().startsWith(q)
+          const bStarts = b.name.toLowerCase().startsWith(q)
+          if (aStarts && !bStarts) return -1
+          if (!aStarts && bStarts) return 1
+          return a.name.localeCompare(b.name)
+        })
         .slice(0, 10)
 
   const noMatch = query.length >= 1 && filtered.length === 0
