@@ -1,12 +1,10 @@
+import { getPocketBase } from '@/lib/pocketbase'
+
 export async function POST(req: Request) {
-  const pbUrl = process.env.POCKETBASE_URL
-  if (!pbUrl) return Response.json({ ok: false }, { status: 503 })
+  const pb = getPocketBase()
+  if (!pb) return Response.json({ ok: false }, { status: 503 })
   const body = await req.json()
-  await fetch(`${pbUrl}/api/collections/guesses/records`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  await pb.collection('guesses').create(body)
   return Response.json({ ok: true })
 }
 
@@ -14,17 +12,15 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const mode = searchParams.get('mode')
   const date = searchParams.get('date')
-  const pbUrl = process.env.POCKETBASE_URL
-  if (!pbUrl || !mode || !date) return Response.json({ total: 0, solves: 0 })
-  const filter = encodeURIComponent(`mode='${mode}'&&date='${date}'`)
-  const res = await fetch(
-    `${pbUrl}/api/collections/guesses/records?filter=${filter}&fields=solved&perPage=500`,
-    { cache: 'no-store' }
-  )
-  if (!res.ok) return Response.json({ total: 0, solves: 0 })
-  const { items = [] } = await res.json()
+  const pb = getPocketBase()
+  if (!pb || !mode || !date) return Response.json({ total: 0, solves: 0 })
+  const result = await pb.collection('guesses').getList(1, 500, {
+    filter: pb.filter('mode = {:mode} && date = {:date}', { mode, date }),
+    fields: 'solved',
+  })
+  const items = result.items
   return Response.json({
     total: items.length,
-    solves: items.filter((i: { solved: boolean }) => i.solved).length,
+    solves: items.filter(i => i.solved).length,
   })
 }

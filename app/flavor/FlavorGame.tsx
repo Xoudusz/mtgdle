@@ -47,7 +47,7 @@ export default function FlavorGame({ cards, dailyCard }: Props) {
     }
   }, [dailyCard])
 
-  function handleGuess(card: Card) {
+  async function handleGuess(card: Card) {
     const correct = card.name === dailyCard.name
     const next = [...guesses, { name: card.name, correct }]
     setGuesses(next)
@@ -59,8 +59,8 @@ export default function FlavorGame({ cards, dailyCard }: Props) {
       saveResult({ date: todayStr(), mode: 'flavor', solved: true, guesses: next.map(g => g.name) })
       if (!statsSubmitted.current) {
         statsSubmitted.current = true
-        submitStats({ mode: 'flavor', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
-        fetchStats('flavor', todayStr()).then(setStats)
+        await submitStats({ mode: 'flavor', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
+        setStats(await fetchStats('flavor', todayStr()))
       }
       return
     }
@@ -72,15 +72,15 @@ export default function FlavorGame({ cards, dailyCard }: Props) {
     }
   }
 
-  function handleGiveUp() {
+  async function handleGiveUp() {
     setShowContinueModal(false)
     setDone(true)
     setShowModal(true)
     saveResult({ date: todayStr(), mode: 'flavor', solved: false, guesses: guesses.map(g => g.name) })
     if (!statsSubmitted.current) {
       statsSubmitted.current = true
-      submitStats({ mode: 'flavor', date: todayStr(), card_id: dailyCard.id, guess_count: guesses.length, solved: false })
-      fetchStats('flavor', todayStr()).then(setStats)
+      await submitStats({ mode: 'flavor', date: todayStr(), card_id: dailyCard.id, guess_count: guesses.length, solved: false })
+      setStats(await fetchStats('flavor', todayStr()))
     }
   }
 

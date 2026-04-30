@@ -49,7 +49,7 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
     }
   }, [dailyCard])
 
-  function handleGuess(card: Card) {
+  async function handleGuess(card: Card) {
     const correct = card.name === dailyCard.name
     const next = [...guesses, { name: card.name, correct }]
     setGuesses(next)
@@ -61,8 +61,8 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
       saveResult({ date: todayStr(), mode: 'art', solved: true, guesses: next.map(g => g.name) })
       if (!statsSubmitted.current) {
         statsSubmitted.current = true
-        submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
-        fetchStats('art', todayStr()).then(setStats)
+        await submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
+        setStats(await fetchStats('art', todayStr()))
       }
       return
     }
@@ -74,15 +74,15 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
     }
   }
 
-  function handleGiveUp() {
+  async function handleGiveUp() {
     setShowContinueModal(false)
     setDone(true)
     setShowModal(true)
     saveResult({ date: todayStr(), mode: 'art', solved: false, guesses: guesses.map(g => g.name) })
     if (!statsSubmitted.current) {
       statsSubmitted.current = true
-      submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: guesses.length, solved: false })
-      fetchStats('art', todayStr()).then(setStats)
+      await submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: guesses.length, solved: false })
+      setStats(await fetchStats('art', todayStr()))
     }
   }
 

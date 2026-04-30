@@ -53,7 +53,7 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
     }
   }, [cards, dailyCard])
 
-  function handleGuess(card: Card) {
+  async function handleGuess(card: Card) {
     const result = compareCards(card, dailyCard)
     const next = [...results, result]
     setResults(next)
@@ -70,8 +70,8 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
       })
       if (!statsSubmitted.current) {
         statsSubmitted.current = true
-        submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
-        fetchStats('classic', todayStr()).then(setStats)
+        await submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
+        setStats(await fetchStats('classic', todayStr()))
       }
       return
     }
@@ -89,7 +89,7 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
     }
   }
 
-  function handleGiveUp() {
+  async function handleGiveUp() {
     setShowContinueModal(false)
     setDone(true)
     setShowModal(true)
@@ -101,8 +101,8 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
     })
     if (!statsSubmitted.current) {
       statsSubmitted.current = true
-      submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: results.length, solved: false })
-      fetchStats('classic', todayStr()).then(setStats)
+      await submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: results.length, solved: false })
+      setStats(await fetchStats('classic', todayStr()))
     }
   }
 
