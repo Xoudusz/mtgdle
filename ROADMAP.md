@@ -193,10 +193,11 @@ services:
 - [x] Win state + full card reveal
 
 ### Phase 5 — Stats (PocketBase)
-- [ ] Spin up PocketBase, define `guesses` collection schema
-- [ ] `api/stats/route.ts` — Next.js API route that proxies POST to PocketBase
-- [ ] Fire stat submission on game completion (non-blocking, fails silently)
-- [ ] Basic today's result screen — show solve count for today's card across all players
+- [x] Spin up PocketBase in docker-compose, define `guesses` collection schema via JS migration (`pb_migrations/1_create_guesses.js`)
+- [x] `app/api/stats/route.ts` — Next.js API route: POST proxies to PocketBase, GET returns aggregate `{ total, solves }`
+- [x] `lib/stats.ts` — fire-and-forget `submitStats` + `fetchStats` helpers
+- [x] Fire stat submission on game completion (non-blocking, fails silently, deduped via ref)
+- [x] ResultModal shows "X of Y players solved today" when stats available
 
 ### Phase 6 — Polish
 - [x] Home page `/` — mode selector with clear descriptions

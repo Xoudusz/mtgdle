@@ -23,3 +23,5 @@ yarn-error.log*
 
 # claude
 .claude/
+pocketbase_local/
+pb_data/

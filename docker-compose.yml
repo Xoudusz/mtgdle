@@ -7,3 +7,13 @@ services:
     # Container listens on port 3000 — configure nginx proxy to target mtgdle:3000
     environment:
       - CARD_SEED=0
+      - POCKETBASE_URL=http://mtgdle-pb:8090
+
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: mtgdle-pb
+    restart: unless-stopped
+    network_mode: nginx_proxy_default
+    volumes:
+      - ./pb_data:/pb/pb_data
+      - ./pb_migrations:/pb/pb_migrations

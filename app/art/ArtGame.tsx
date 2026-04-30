@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Card } from '@/lib/types'
 import { loadResult, saveResult } from '@/lib/storage'
+import { submitStats, fetchStats } from '@/lib/stats'
 import CardSearch from '@/components/CardSearch'
 import ResultModal from '@/components/ResultModal'
 import ArtZoom from '@/components/ArtZoom'
@@ -28,6 +29,8 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
   const [done, setDone] = useState(false)
   const [solved, setSolved] = useState(false)
   const [continued, setContinued] = useState(false)
+  const [stats, setStats] = useState<{ total: number; solves: number } | null>(null)
+  const statsSubmitted = useRef(false)
 
   useEffect(() => {
     const saved = loadResult(todayStr(), 'art')
@@ -37,9 +40,11 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
     if (saved.solved) {
       setSolved(true)
       setDone(true)
+      statsSubmitted.current = true
     } else if (saved.continued) {
       setContinued(true)
     } else if (saved.guesses.length >= MAX_GUESSES) {
+      statsSubmitted.current = true
       setShowContinueModal(true)
     }
   }, [dailyCard])
@@ -54,6 +59,11 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
       setDone(true)
       setShowModal(true)
       saveResult({ date: todayStr(), mode: 'art', solved: true, guesses: next.map(g => g.name) })
+      if (!statsSubmitted.current) {
+        statsSubmitted.current = true
+        submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
+        fetchStats('art', todayStr()).then(setStats)
+      }
       return
     }
 
@@ -69,6 +79,11 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
     setDone(true)
     setShowModal(true)
     saveResult({ date: todayStr(), mode: 'art', solved: false, guesses: guesses.map(g => g.name) })
+    if (!statsSubmitted.current) {
+      statsSubmitted.current = true
+      submitStats({ mode: 'art', date: todayStr(), card_id: dailyCard.id, guess_count: guesses.length, solved: false })
+      fetchStats('art', todayStr()).then(setStats)
+    }
   }
 
   function handleContinue() {
@@ -155,6 +170,7 @@ export default function ArtGame({ cards, dailyCard, anchorX, anchorY }: Props) {
             solved={solved}
             guessCount={guesses.length}
             onClose={() => setShowModal(false)}
+            stats={stats ?? undefined}
           />
         )}
       </div>

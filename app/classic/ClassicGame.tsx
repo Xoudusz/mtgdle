@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Card } from '@/lib/types'
 import type { GuessResult } from '@/lib/compare'
 import { compareCards, filterCandidates } from '@/lib/compare'
 import { loadResult, saveResult } from '@/lib/storage'
+import { submitStats, fetchStats } from '@/lib/stats'
 import CardSearch from '@/components/CardSearch'
 import GuessGrid from '@/components/GuessGrid'
 import CandidateGrid from '@/components/CandidateGrid'
@@ -28,6 +29,8 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
   const [done, setDone] = useState(false)
   const [solved, setSolved] = useState(false)
   const [continued, setContinued] = useState(false)
+  const [stats, setStats] = useState<{ total: number; solves: number } | null>(null)
+  const statsSubmitted = useRef(false)
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -41,9 +44,11 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
     if (saved.solved) {
       setSolved(true)
       setDone(true)
+      statsSubmitted.current = true
     } else if (saved.continued) {
       setContinued(true)
     } else if (saved.guesses.length >= MAX_GUESSES) {
+      statsSubmitted.current = true
       setShowContinueModal(true)
     }
   }, [cards, dailyCard])
@@ -63,6 +68,11 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
         solved: true,
         guesses: next.map(r => r.guessedCard.name),
       })
+      if (!statsSubmitted.current) {
+        statsSubmitted.current = true
+        submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: next.length, solved: true })
+        fetchStats('classic', todayStr()).then(setStats)
+      }
       return
     }
 
@@ -89,6 +99,11 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
       solved: false,
       guesses: results.map(r => r.guessedCard.name),
     })
+    if (!statsSubmitted.current) {
+      statsSubmitted.current = true
+      submitStats({ mode: 'classic', date: todayStr(), card_id: dailyCard.id, guess_count: results.length, solved: false })
+      fetchStats('classic', todayStr()).then(setStats)
+    }
   }
 
   function handleContinue() {
@@ -182,6 +197,7 @@ export default function ClassicGame({ cards, dailyCard }: Props) {
             solved={solved}
             guessCount={results.length}
             onClose={() => setShowModal(false)}
+            stats={stats ?? undefined}
           />
         )}
       </div>

@@ -8,9 +8,10 @@ interface Props {
   solved: boolean
   guessCount: number
   onClose: () => void
+  stats?: { total: number; solves: number }
 }
 
-export default function ResultModal({ card, solved, guessCount, onClose }: Props) {
+export default function ResultModal({ card, solved, guessCount, onClose, stats }: Props) {
   return (
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
@@ -39,6 +40,11 @@ export default function ResultModal({ card, solved, guessCount, onClose }: Props
         {solved && (
           <p className="text-[#9b8a6e] text-sm">
             Solved in {guessCount} guess{guessCount !== 1 ? 'es' : ''}
+          </p>
+        )}
+        {stats && stats.total > 0 && (
+          <p className="text-[#9b8a6e] text-sm">
+            {stats.solves} of {stats.total} players solved today
           </p>
         )}
         <button
