@@ -12,12 +12,14 @@
     "next": "14.2.29",
     "pocketbase": "^0.26.8",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "stream-json": "^1.9.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/stream-json": "^1.7.8",
     "autoprefixer": "^10",
     "postcss": "^8",
     "tailwindcss": "^3",

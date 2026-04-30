@@ -1,5 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { Readable } from 'stream'
+import StreamArray from 'stream-json/streamers/StreamArray'
 
 const BULK_URL = 'https://api.scryfall.com/bulk-data'
 const TARGET_COUNT = 1000
@@ -89,7 +91,14 @@ async function main() {
 
   console.log('Downloading bulk cards JSON...')
   const bulkRes = await fetch(bulkEntry.download_uri, { headers })
-  const allCards: ScryfallCard[] = await bulkRes.json()
+  const allCards: ScryfallCard[] = await new Promise((resolve, reject) => {
+    const cards: ScryfallCard[] = []
+    const pipeline = StreamArray.withParser()
+    pipeline.on('data', ({ value }: { value: ScryfallCard }) => cards.push(value))
+    pipeline.on('end', () => resolve(cards))
+    pipeline.on('error', reject)
+    Readable.fromWeb(bulkRes.body as import('stream/web').ReadableStream).pipe(pipeline)
+  })
 
   console.log(`Total cards: ${allCards.length}`)
 
