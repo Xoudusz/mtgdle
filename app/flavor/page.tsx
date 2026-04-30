@@ -1,7 +1,10 @@
+import { getDailyCard } from '@/lib/daily'
+import cards from '@/data/cards.json'
+import type { Card } from '@/lib/types'
+import FlavorGame from './FlavorGame'
+
 export default function FlavorPage() {
-  return (
-    <main className="flex items-center justify-center min-h-screen">
-      <p className="text-[#9b8a6e]">Flavordle — coming soon</p>
-    </main>
-  )
+  const cardPool = (cards as Card[]).filter(c => c.flavor_text !== null)
+  const dailyCard = getDailyCard('flavor', cardPool)
+  return <FlavorGame cards={cardPool} dailyCard={dailyCard} />
 }

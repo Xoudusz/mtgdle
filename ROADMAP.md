@@ -187,10 +187,10 @@ services:
 - [x] Win state + full art reveal
 
 ### Phase 4 — Flavor Mode (Flavordle)
-- [ ] Filter `cards.json` at build time — exclude cards without flavor text
-- [ ] `FlavorReveal.tsx` — display full flavor text, styled nicely
-- [ ] Same `CardSearch.tsx` input
-- [ ] Win state + full card reveal
+- [x] Filter card pool at runtime — exclude cards without flavor text
+- [x] `FlavorText.tsx` — display full flavor text, styled nicely (italic body, attribution)
+- [x] Same `CardSearch.tsx` input
+- [x] Win state + full card reveal
 
 ### Phase 5 — Stats (PocketBase)
 - [ ] Spin up PocketBase, define `guesses` collection schema
