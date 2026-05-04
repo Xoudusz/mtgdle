@@ -10,7 +10,7 @@ const GUESSES_SCHEMA = {
   viewRule: '',
   updateRule: null,
   deleteRule: null,
-  schema: [
+  fields: [
     { name: 'mode', type: 'text', required: true },
     { name: 'date', type: 'text', required: true },
     { name: 'card_id', type: 'text', required: true },
