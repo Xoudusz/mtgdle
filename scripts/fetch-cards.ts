@@ -80,23 +80,50 @@ function extractType(typeLine: string) {
   return { card_type, supertypes }
 }
 
+async function fetchWithRetry(url: string, headers: Record<string, string>, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, { headers })
+      if (res.ok) return res
+      const text = await res.text()
+      console.error(`Attempt ${i + 1}: HTTP ${res.status}: ${text.slice(0, 200)}`)
+    } catch (err) {
+      console.error(`Attempt ${i + 1} failed:`, err)
+    }
+    if (i < retries - 1) {
+      const delay = (i + 1) * 2000
+      console.log(`Retrying in ${delay}ms...`)
+      await new Promise(r => setTimeout(r, delay))
+    }
+  }
+  throw new Error(`Failed after ${retries} attempts`)
+}
+
 async function main() {
   const headers = { 'User-Agent': 'MTGdle/1.0' }
 
   console.log('Fetching Scryfall bulk data index...')
-  const indexRes = await fetch(BULK_URL, { headers })
+  const indexRes = await fetchWithRetry(BULK_URL, headers)
   const index = await indexRes.json() as { data: Array<{ type: string; download_uri: string }> }
   const bulkEntry = index.data.find(d => d.type === 'default_cards')
   if (!bulkEntry) throw new Error('Could not find default_cards bulk entry')
 
   console.log('Downloading bulk cards JSON...')
-  const bulkRes = await fetch(bulkEntry.download_uri, { headers })
+  console.log(`URL: ${bulkEntry.download_uri}`)
+  const bulkRes = await fetchWithRetry(bulkEntry.download_uri, headers)
+  console.log(`Response status: ${bulkRes.status}, content-type: ${bulkRes.headers.get('content-type')}`)
+  if (!bulkRes.body) {
+    throw new Error('Scryfall response has no body')
+  }
   const allCards: ScryfallCard[] = await new Promise((resolve, reject) => {
     const cards: ScryfallCard[] = []
     const pipeline = StreamArray.withParser()
     pipeline.on('data', ({ value }: { value: ScryfallCard }) => cards.push(value))
     pipeline.on('end', () => resolve(cards))
-    pipeline.on('error', reject)
+    pipeline.on('error', (err) => {
+      console.error('Stream parse error:', err.message)
+      reject(err)
+    })
     Readable.fromWeb(bulkRes.body as import('stream/web').ReadableStream).pipe(pipeline)
   })
 
