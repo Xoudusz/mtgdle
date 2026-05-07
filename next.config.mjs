@@ -7,9 +7,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'c1.scryfall.com' },
     ],
   },
-  experimental: {
-    instrumentationHook: true,
-  },
 }
 
 export default nextConfig

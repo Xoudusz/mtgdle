@@ -9,19 +9,19 @@
     "fetch-cards": "tsx scripts/fetch-cards.ts"
   },
   "dependencies": {
-    "next": "14.2.29",
+    "next": "16.2.5",
     "pocketbase": "^0.26.8",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^19",
+    "react-dom": "^19",
     "stream-json": "^1.9.1"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@types/stream-json": "^1.7.8",
     "autoprefixer": "^10",
-    "postcss": "^8",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3",
     "tsx": "^4",
     "typescript": "^5"
