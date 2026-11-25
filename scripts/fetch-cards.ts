@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { Readable } from 'stream'
 import StreamArray from 'stream-json/streamers/StreamArray'
+import { pickBulkDownload, readJsonlGz, type BulkEntry } from '../lib/scryfall-bulk'
 
 const BULK_URL = 'https://api.scryfall.com/bulk-data'
 const TARGET_COUNT = 1000
@@ -104,41 +105,53 @@ async function main() {
 
   console.log('Fetching Scryfall bulk data index...')
   const indexRes = await fetchWithRetry(BULK_URL, headers)
-  const index = await indexRes.json() as { data: Array<{ type: string; download_uri: string }> }
-  const bulkEntry = index.data.find(d => d.type === 'default_cards')
-  if (!bulkEntry) throw new Error('Could not find default_cards bulk entry')
+  const index = await indexRes.json() as { data: BulkEntry[] }
+  const bulk = pickBulkDownload(index)
 
-  console.log('Downloading bulk cards JSON...')
-  console.log(`URL: ${bulkEntry.download_uri}`)
-  const bulkRes = await fetchWithRetry(bulkEntry.download_uri, headers)
+  console.log(`Downloading bulk cards (${bulk.format})...`)
+  console.log(`URL: ${bulk.url}`)
+  const bulkRes = await fetchWithRetry(bulk.url, headers)
   console.log(`Response status: ${bulkRes.status}, content-type: ${bulkRes.headers.get('content-type')}`)
   if (!bulkRes.body) {
     throw new Error('Scryfall response has no body')
   }
-  const allCards: ScryfallCard[] = await new Promise((resolve, reject) => {
-    const cards: ScryfallCard[] = []
-    const pipeline = StreamArray.withParser()
-    pipeline.on('data', ({ value }: { value: ScryfallCard }) => cards.push(value))
-    pipeline.on('end', () => resolve(cards))
-    pipeline.on('error', (err) => {
-      console.error('Stream parse error:', err.message)
-      reject(err)
-    })
-    Readable.fromWeb(bulkRes.body as import('stream/web').ReadableStream).pipe(pipeline)
-  })
-
-  console.log(`Total cards: ${allCards.length}`)
+  const body = Readable.fromWeb(bulkRes.body as import('stream/web').ReadableStream)
 
   // Filter: English, not token/art card, has image, has required fields
-  const eligible = allCards.filter(c =>
+  const isEligible = (c: ScryfallCard) =>
     c.lang === 'en' &&
     c.layout !== 'token' &&
     c.layout !== 'art_series' &&
     c.layout !== 'double_faced_token' &&
     c.image_uris != null &&
-    c.type_line &&
+    !!c.type_line &&
     !c.type_line.includes('Token')
-  )
+
+  let total = 0
+  const eligible: ScryfallCard[] = []
+  if (bulk.format === 'jsonl.gz') {
+    // Filter while streaming: the full bulk file is far larger than what we keep.
+    for await (const card of readJsonlGz<ScryfallCard>(body)) {
+      total++
+      if (isEligible(card)) eligible.push(card)
+    }
+  } else {
+    await new Promise<void>((resolve, reject) => {
+      const pipeline = StreamArray.withParser()
+      pipeline.on('data', ({ value }: { value: ScryfallCard }) => {
+        total++
+        if (isEligible(value)) eligible.push(value)
+      })
+      pipeline.on('end', () => resolve())
+      pipeline.on('error', (err) => {
+        console.error('Stream parse error:', err.message)
+        reject(err)
+      })
+      body.pipe(pipeline)
+    })
+  }
+
+  console.log(`Total cards: ${total}, eligible: ${eligible.length}`)
 
   // Group by name
   const byName = new Map<string, ScryfallCard[]>()
@@ -213,4 +226,8 @@ async function main() {
   console.log(`Wrote ${output.length} cards to data/cards.json`)
 }
 
-main().catch(console.error)
+main().catch(err => {
+  // Exit non-zero so `npm run fetch-cards && npm run build` stops here with the real error.
+  console.error(err)
+  process.exit(1)
+})

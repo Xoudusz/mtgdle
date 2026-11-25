@@ -7,6 +7,6 @@ export const IMPRESSUM = {
   email: 'da@w23.at',
 }
 
-export function impressumEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function impressumEnabled(env: Record<string, string | undefined> = process.env): boolean {
   return env.IMPRESSUM_ENABLED?.trim().toLowerCase() !== 'false'
 }
