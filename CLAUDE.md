@@ -49,3 +49,6 @@ Runs alongside Next.js. Admin UI at `:8090/_/` (expose port to access from LAN).
 ## Deploy
 
 CI builds + pushes `ghcr.io/xoudusz/mtgdle:latest` on push to master.
+
+## Env
+- `IMPRESSUM_ENABLED` (default on): Austrian Impressum link + page; only `false` disables. Read at runtime, never bake into the build.
