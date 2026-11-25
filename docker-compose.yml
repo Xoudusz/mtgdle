@@ -12,6 +12,7 @@ services:
     environment:
       CARD_SEED: 0
       POCKETBASE_URL: http://mtgdle-pb:8090
+      IMPRESSUM_ENABLED: "${IMPRESSUM_ENABLED:-true}"
       <<: *pb-credentials
 
   pocketbase:

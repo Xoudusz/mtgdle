@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import GameNav from '@/components/GameNav'
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'MTGdle',
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-[#0f0f0f] text-[#e8e0d0]">
         <GameNav />
         {children}
+        <Footer />
       </body>
     </html>
   )
